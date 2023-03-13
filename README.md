@@ -1,3 +1,81 @@
+# On-Prem Four Keys (FORK)
+
+## What is this?
+
+Fork of the Four Keys project https://github.com/dora-team/fourkeys with different database as an option for on-premise world.
+
+## Why?
+
+Original project has Google's Cloud NoSQL (BigQuery) as a requirement.
+We found out that use of BigQuery plus connecting to "another cloud" can be an issue or even blocker in our projects.
+
+We rewrote BigQuery queries to Postgres v14 and got it running on localhost in Docker (Compose).
+
+## How to start?
+
+### Prerequisites
+
+*   docker-compose
+*   make
+
+### How to Launch this Space Shuttle?
+
+1. Clone this repo
+
+   ```sh
+   git clone git@github.com:CrackingBits/fourkeys.git
+   cd fourkeys
+   ```
+
+1. Start containers:
+
+   ```sh
+   cd setup-postgres-docker
+   make restart
+   ```
+
+   You can see 6 running containers:
+   *  ..._github-parser_1 
+   *  ..._event-handler_1
+   *  ..._grafana_1 http://localhost:3000/d/yVtwoQ4nk/four-keys?orgId=1 & http://localhost:3000/d/yVtwoQ4nj/four-keys-debug?orgId=1
+   *  ..._pgadmin_1 http://localhost:15432/browser/
+   *  ..._pubsub_1
+   *  ..._postgres_1
+   
+1. Prepare PUB/SUB topic:
+
+   ```sh
+   make prepare-push-endpoint
+   ```
+
+   This creates PUB/SUB topic and push endpoint for GitHub.  
+   
+1. Now, you can access Grafana, PGAdmin and Postgres v14
+   *  Grafana Dashboards
+       *   http://localhost:3000/d/yVtwoQ4nk/four-keys?orgId=1
+       *   http://localhost:3000/d/yVtwoQ4nj/four-keys-debug?orgId=1
+   *  PGAdmin (user: postgres@example.com, password: password)
+       *   http://localhost:15432/browser/
+   *  Postgres (user: postgres, password: password)
+       *   localhost:5432
+
+1. Generate MOCK data (OPTIONAL):
+
+   ```sh
+   make generate-data
+   ```
+
+   Initial Postgre database called `dockerdb` should already contain 933 records. This optional command generates more data.
+
+## What's missing? (TODO)
+
+*   Signature verification doesn't work on localhost in event handler `event-handler/event_handler.py`
+*   Try/port other workers. Only GitHub is currently used.
+*   Perf. test of PubSub Emulator. Not sure how much this emulator can handle.
+
+---
+# README of original Four Keys project
+
 ![Four Keys](images/fourkeys_wide.svg)
 
 [![Four Keys YouTube Video](images/youtube-screenshot.png)](https://www.youtube.com/watch?v=2rzvIL29Nz0 "Measuring Devops: The Four Keys Project")

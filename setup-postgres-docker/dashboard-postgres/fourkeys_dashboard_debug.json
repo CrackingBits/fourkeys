@@ -380,7 +380,7 @@
                     "editorMode": "code",
                     "format": "table",
                     "rawQuery": true,
-                    "rawSql": "SELECT * FROM deployment_frequency_number_todo;",
+                    "rawSql": "SELECT * FROM deployment_frequency_number;",
                     "refId": "A",
                     "sql": {
                         "columns": [

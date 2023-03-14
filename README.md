@@ -37,8 +37,8 @@ We rewrote BigQuery queries to Postgres v14 and got it running on localhost in D
    You can see 6 running containers:
    *  ..._github-parser_1 
    *  ..._event-handler_1
-   *  ..._grafana_1 http://localhost:3000/d/yVtwoQ4nk/four-keys?orgId=1 & http://localhost:3000/d/yVtwoQ4nj/four-keys-debug?orgId=1
-   *  ..._pgadmin_1 http://localhost:15432/browser/
+   *  ..._grafana_1
+   *  ..._pgadmin_1
    *  ..._pubsub_1
    *  ..._postgres_1
    
@@ -54,10 +54,15 @@ We rewrote BigQuery queries to Postgres v14 and got it running on localhost in D
    *  Grafana Dashboards
        *   http://localhost:3000/d/yVtwoQ4nk/four-keys?orgId=1
        *   http://localhost:3000/d/yVtwoQ4nj/four-keys-debug?orgId=1
-   *  PGAdmin (user: postgres@example.com, password: password)
+   *  PGAdmin
        *   http://localhost:15432/browser/
-   *  Postgres (user: postgres, password: password)
+       *   user: postgres@example.com, password: password
+       *   Servers -> postgres:5432 (password: password)
+       *   Databases -> dockerdb -> Schemas -> public -> Tables (events_raw)
+       *   Databases -> dockerdb -> Schemas -> public -> Views
+   *  Postgres
        *   localhost:5432
+       *   user: postgres, password: password
 
 1. Generate MOCK data (OPTIONAL):
 
@@ -69,6 +74,8 @@ We rewrote BigQuery queries to Postgres v14 and got it running on localhost in D
 
 ## What's missing? (TODO)
 
+*   Finish conversion of SQL query deployment_frequency_number
+*   Validate SQL query  time_to_restore_trend (shows different totals than BigQuery)
 *   Signature verification doesn't work on localhost in event handler `event-handler/event_handler.py`
 *   Try/port other workers. Only GitHub is currently used.
 *   Perf. test of PubSub Emulator. Not sure how much this emulator can handle.

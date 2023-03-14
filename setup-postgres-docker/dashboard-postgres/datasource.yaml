@@ -20,7 +20,7 @@ datasources:
     typeName: "PostgreSQL"
     access: "proxy"
     url: postgres:5432
-    database: dockerdb
+    database: ''
     user: postgres
     basicAuth: false
     isDefault: true
@@ -30,6 +30,7 @@ datasources:
     secureJsonData:
       password: "password"
     jsonData:
+      database: dockerdb
       sslmode: "disable" # disable/require/verify-ca/verify-full
       postgresVersion: 1400
       timescaledb: false

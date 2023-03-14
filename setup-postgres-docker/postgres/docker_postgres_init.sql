@@ -463,16 +463,18 @@ FROM
   lead_time_number;
 
 -- DASHBOARD SDO: Table view - Deployment Frequency - Calculating the bucket  --------------------------------------------------
--- TODO - this is not finished - month counting!!!!
-CREATE VIEW deployment_frequency_number_todo AS WITH last_three_months AS (
+CREATE VIEW deployment_frequency_number AS WITH last_three_months AS (
   SELECT
-    CAST(day AS TIMESTAMP) AS day
+    date_trunc(
+      'day' :: text,
+      day.day :: timestamp without time zone
+    ) AS day
   FROM
-    GENERATE_SERIES(
-      DATE_TRUNC('month', NOW() - INTERVAL '3 months'),
-      DATE_TRUNC('day', NOW()),
-      INTERVAL '1 day'
-    ) day
+    generate_series(
+      now() - '3 mons' :: interval,
+      now(),
+      '1 day' :: interval
+    ) day(day)
   WHERE
     day > (
       SELECT
@@ -499,43 +501,51 @@ SELECT
     ELSE false
   END AS weekly,
   -- Count the number of deployments per month.
-  -- Cannot mix aggregate and analytic functions, so calculate the median in the outer select statement
-  --SUM(week_deployed) OVER(PARTITION BY DATE_TRUNC('month', week) ORDER BY week) AS monthly_deploys
-  SUM(week_deployed) AS monthly_deploys -- TODO
+  monthly_deploys,
+  week
 FROM
   (
     SELECT
-      DATE_TRUNC('week', last_three_months.day) AS week,
-      MAX(
-        CASE
-          WHEN deployments.day IS NOT NULL THEN 1
-          ELSE 0
-        END
-      ) AS week_deployed,
-      COUNT(DISTINCT deployments.day) AS days_deployed
+      *,
+      sum(week_deployed) OVER (PARTITION BY DATE_TRUNC('month', week)) as monthly_deploys
     FROM
-      last_three_months
-      LEFT JOIN (
+      (
         SELECT
-          DATE_TRUNC('day', time_created) AS day,
-          deploy_id
+          DATE_TRUNC('week', last_three_months.day) AS week,
+          MAX(
+            CASE
+              WHEN deployments.day IS NOT NULL THEN 1
+              ELSE 0
+            END
+          ) AS week_deployed,
+          COUNT(DISTINCT deployments.day) AS days_deployed
         FROM
-          deployments
-      ) deployments ON deployments.day = last_three_months.day
-    GROUP BY
-      week
-  ) subquery;
+          last_three_months
+          LEFT JOIN (
+            SELECT
+              DATE_TRUNC('day', time_created) AS day,
+              deploy_id
+            FROM
+              deployments
+          ) deployments ON deployments.day = last_three_months.day
+        GROUP BY
+          week
+      ) subquery1
+  ) subquery2
+GROUP BY
+  week,
+  monthly_deploys;
 
-CREATE VIEW deployment_frequency_bucket_todo AS
+CREATE VIEW deployment_frequency_bucket AS
 SELECT
   CASE
     WHEN daily THEN 'Daily'
-    WHEN weekly THEN 'Weekly' -- If at least one per month, then Monthly
-    --WHEN PERCENTILE_CONT(monthly_deploys, 0.5) OVER () >= 1 THEN  "Monthly"
-    -- TODO !!!!!
+    WHEN weekly THEN 'Weekly'
+    WHEN monthly_deploys > 0 THEN 'Monhly' -- If at least one per month, then Monthly
+    -- TODO Verify / BigQuery WHEN PERCENTILE_CONT(monthly_deploys, 0.5) OVER () >= 1 THEN  "Monthly"
     ELSE 'Yearly'
   END AS deployment_frequency
 FROM
-  deployment_frequency_number_todo
+  deployment_frequency_number
 LIMIT
   1;

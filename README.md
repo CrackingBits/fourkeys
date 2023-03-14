@@ -75,6 +75,7 @@ We rewrote BigQuery queries to Postgres v14 and got it running on localhost in D
 ## What's missing? (TODO)
 
 *   Finish conversion of SQL query deployment_frequency_number
+*   Deployment Freq. Bucket on BigQuery goes probably to wrong week
 *   Validate SQL query  time_to_restore_trend (shows different totals than BigQuery)
 *   Signature verification doesn't work on localhost in event handler `event-handler/event_handler.py`
 *   Try/port other workers. Only GitHub is currently used.

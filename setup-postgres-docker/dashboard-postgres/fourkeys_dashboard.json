@@ -430,7 +430,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT * FROM deployment_frequency_bucket_todo",
+          "rawSql": "SELECT * FROM deployment_frequency_bucket",
           "refId": "A",
           "sql": {
             "columns": [

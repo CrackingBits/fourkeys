@@ -541,11 +541,20 @@ SELECT
   CASE
     WHEN daily THEN 'Daily'
     WHEN weekly THEN 'Weekly'
-    WHEN monthly_deploys > 0 THEN 'Monhly' -- If at least one per month, then Monthly
-    -- TODO Verify / BigQuery WHEN PERCENTILE_CONT(monthly_deploys, 0.5) OVER () >= 1 THEN  "Monthly"
+    WHEN (
+      SELECT
+        PERCENTILE_CONT(0.5) WITHIN GROUP(
+          ORDER BY
+            monthly_deploys
+        )
+      FROM
+        deployment_frequency_number
+    ) >= 1 THEN 'Monhly'
     ELSE 'Yearly'
   END AS deployment_frequency
 FROM
   deployment_frequency_number
+ORDER BY
+  week DESC
 LIMIT
   1;

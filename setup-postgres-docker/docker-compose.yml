@@ -88,7 +88,8 @@ services:
       PGADMIN_DEFAULT_PASSWORD: password
       PGADMIN_SERVER_NAME: db
       PGADMIN_SERVER_JSON_FILE: /pgadmin4/pgadmin-4-servers.json
-      PGPASSFILE: /.pgpass
+      # PGPASSFILE for pg_dump a pg_restore, has to be full path
+      PGPASSFILE: /var/lib/pgadmin/storage/postgres_example.com/.pgpass
     volumes:
       - ./setup-postgres-docker/pgadmin/pgadmin-storage:/var/lib/pgadmin/storage/postgres_example.com:Z
       #- ./pgadmin-storage:/var/lib/pgadmin/storage/postgres_example.com/pgadmin-storage:Z

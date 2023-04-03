@@ -365,7 +365,7 @@
                     "calcs": [
                         "lastNotNull"
                     ],
-                    "fields": "/^(daily|weekly|monthly_deploys)$/",
+                    "fields": "/^(daily|weekly|monthly_deploys|monthly_deploys_median)$/",
                     "values": false
                 },
                 "textMode": "auto"

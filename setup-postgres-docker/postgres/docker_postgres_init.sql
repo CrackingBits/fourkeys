@@ -225,7 +225,7 @@ HAVING
   max(bug :: int) >= 1;
 
 -- DASHBOARD HELPER: Med. Time to Change --------------------------------------------------
-CREATE VIEW helper_med_time_to_change AS
+CREATE VIEW lead_time_helper_med_time_to_change AS
 SELECT
   d.deploy_id,
   d.time_created AS deploy_time_created,
@@ -257,7 +257,7 @@ FROM
   LEFT JOIN changes c ON (change_obj ->> 'id') :: text = c.change_id;
 
 -- DASHBOARD HELPER: Med. Time to Restore --------------------------------------------------
-CREATE VIEW helper_med_time_to_restore AS
+CREATE VIEW time_to_restore_helper_med_time_to_restore AS
 SELECT
   date_trunc('day', time_created) AS day,
   FLOOR(
@@ -291,7 +291,7 @@ SELECT
       med_time_to_restore
   ) as daily_med_time_to_restore
 FROM
-  helper_med_time_to_restore
+  time_to_restore_helper_med_time_to_restore
 GROUP BY
   day;
 
@@ -346,7 +346,7 @@ FROM
         SELECT
           *
         FROM
-          helper_med_time_to_change
+          lead_time_helper_med_time_to_change
       ) med_time_to_change_query
     GROUP BY
       day
@@ -443,7 +443,7 @@ FROM
     SELECT
       *
     FROM
-      helper_med_time_to_change
+      lead_time_helper_med_time_to_change
     WHERE
       deploy_time_created > (CURRENT_DATE - INTERVAL '3 months') -- Limit to 3 months
   ) med_time_to_change_query
@@ -462,8 +462,8 @@ SELECT
 FROM
   lead_time_number;
 
--- DASHBOARD SDO: Table view - Deployment Frequency - Calculating the bucket  --------------------------------------------------
-CREATE VIEW deployment_frequency_number AS WITH last_three_months AS (
+-- DASHBOARD SDO: Table view - Deployment Frequency  --------------------------------------------------
+CREATE VIEW deployment_frequency_helper AS WITH last_three_months AS (
   SELECT
     date_trunc(
       'day' :: text,
@@ -536,20 +536,30 @@ GROUP BY
   week,
   monthly_deploys;
 
+CREATE VIEW deployment_frequency_number AS
+SELECT
+  daily,
+  weekly,
+  monthly_deploys,
+  (
+    SELECT
+      PERCENTILE_CONT(0.5) WITHIN GROUP(
+        ORDER BY
+          monthly_deploys
+      )
+    FROM
+      deployment_frequency_helper
+  ) as monthly_deploys_median,
+  week
+FROM
+  deployment_frequency_helper;
+
 CREATE VIEW deployment_frequency_bucket AS
 SELECT
   CASE
     WHEN daily THEN 'Daily'
     WHEN weekly THEN 'Weekly'
-    WHEN (
-      SELECT
-        PERCENTILE_CONT(0.5) WITHIN GROUP(
-          ORDER BY
-            monthly_deploys
-        )
-      FROM
-        deployment_frequency_number
-    ) >= 1 THEN 'Monhly'
+    WHEN monthly_deploys_median >= 1 THEN 'Monthly'
     ELSE 'Yearly'
   END AS deployment_frequency
 FROM

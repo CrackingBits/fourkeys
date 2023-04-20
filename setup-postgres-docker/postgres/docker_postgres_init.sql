@@ -73,6 +73,7 @@ CREATE VIEW deployments AS WITH deploys_cloudbuild_github_gitlab AS (
             '.*commit\/(.*)'
         )
       )
+      WHEN source like 'argocd%' then metadata :: json ->> 'commit_sha'
     END AS main_commit,
     CASE
       WHEN source like 'github%' then metadata :: json -> 'deployment' ->> 'additional_sha'
@@ -96,6 +97,10 @@ CREATE VIEW deployments AS WITH deploys_cloudbuild_github_gitlab AS (
         source LIKE 'gitlab%'
         AND event_type = 'deployment'
         AND metadata :: json ->> 'status' = 'success'
+      )
+      OR (
+        source LIKE 'argocd'
+        AND metadata :: json ->> 'status' = 'SUCCESS'
       )
     )
 ),
